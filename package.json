@@ -1,0 +1,14 @@
+{
+  "name": "new-backend-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "pratim"
+  ],
+  "author": "Pratim Dutta",
+  "license": "ISC"
+}
