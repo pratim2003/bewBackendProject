@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js"
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
   },
   "keywords": [
     "pratim"
@@ -17,5 +18,8 @@
     "express": "^4.21.1",
     "mongoose": "^8.8.3",
     "nodemon": "^3.1.7"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2"
   }
 }
