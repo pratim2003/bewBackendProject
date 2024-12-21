@@ -36,5 +36,5 @@ const videoSchema = new mongoose.Schema({
 },{timestamps : true})
 
 
-userSchema.plugin(mongooseaggregatepaginatev2)
+videoSchema.plugin(mongooseaggregatepaginatev2)
 export const videoModel = mongoose.model("Video", videoSchema)

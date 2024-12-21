@@ -52,8 +52,39 @@ const userSchema = new mongoose.Schema({
 userSchema.pre("save",async function(next){
     if(!this.isModified("password")) return next()
 
-    this.password = bcrypt.hash(this.password,10)
+    this.password = await bcrypt.hash(this.password,10)
     next()
 })
+
+userSchema.methods.isVerified = async function(password){
+    return await bcrypt.compare(password,this.password)
+}
+
+userSchema.methods.AccessToken = function(){
+    return jsonwebtoken.sign(
+        {
+            _id : this._id,
+            userName : this.userName,
+            email : this.email,
+            fullName : this.fullName
+        },
+        process.env.ACCESS_SECRET_TOKEN,
+        {
+            expiresIn : process.env.ACCESS_EXPIRES_IN
+        }
+    )
+}
+
+userSchema.methods.RefreshToken = function(){
+    return jsonwebtoken.sign(
+        {
+            _id : this._id
+        },
+        process.env.REFRESH_SECRET_TOKEN,
+        {
+            expiresIn : process.env.REFRESH_TOKEN_EXPIRES_IN
+        }
+    )
+}
 
 export const userModel = mongoose.model("User", userSchema)
