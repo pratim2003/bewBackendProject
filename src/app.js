@@ -22,3 +22,11 @@ const corsOption = {
 }
 
 app.use(cors(corsOption))
+
+
+//import routes
+import userRouter from "./routes/users.routes.js"
+
+app.use("/api/user",userRouter)
+
+export {app}
