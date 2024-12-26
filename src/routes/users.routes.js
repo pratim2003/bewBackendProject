@@ -4,7 +4,8 @@ import {upload} from "../middlewares/multer.middleware.js"
 
 const router  = Router()
 
-router.get("/get",handleGetData).post("/post",upload.fields([
+router.get("/get",handleGetData)
+router.post("/post",upload.fields([
     {
         name : "avatar",
         maxCount : 1
