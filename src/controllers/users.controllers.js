@@ -1,5 +1,6 @@
 import { userModel } from "../models/user.model.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import CloudinaryFileUpload from "../utils/cloudinary.js"
 
 const handleGetData = asyncHandler(async(req,res)=>{
 
@@ -14,23 +15,30 @@ const handleGetData = asyncHandler(async(req,res)=>{
 const hadleUploadData= asyncHandler(async(req,res)=>{
     const {userName , email , fullName, password} = req.body
 
-    // if([userName , email , fullName, password].some((field) => field.trim() === "")) return res.status(400).json({
-    //     error : "All fields are required"
-    // })
+    if([userName , email , fullName, password].some((field) => field.trim().replace(/\s+/g,"") === "")) return res.status(400).json({
+        error : "All fields are required"
+    })
 
-    // const existedUser = await userModel.findOne({
-    //     $or : [
-    //         {userName : userName},{email : email}
-    //     ]
-    // })
-    // if(existedUser) return res.status(409).json({
-    //     error : "User alredy exists"
-    // })
+    const existedUser = await userModel.findOne({
+        $or : [
+            {userName : userName},{email : email}
+        ]
+    })
+    if(existedUser) return res.status(409).json({
+        error : "User alredy exists"
+    })
 
-    if(req.files){
-        console.log(req.files)
-    }
+    const avatarLocalPath = req.files?.avatar[0].path
+    const coverImagePath = req.files?.coverImage[0].path
 
+    if(!avatarLocalPath) return res.status(400).json({
+        error : "avatar image is required"
+    })
+
+    const avatar = await CloudinaryFileUpload(avatarLocalPath)
+    const coverImage = await CloudinaryFileUpload(coverImagePath)
+
+    const createdUser = await userModel
 
 
     res.status(200).json({
