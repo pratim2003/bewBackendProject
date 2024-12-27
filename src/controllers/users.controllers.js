@@ -38,12 +38,23 @@ const hadleUploadData= asyncHandler(async(req,res)=>{
     const avatar = await CloudinaryFileUpload(avatarLocalPath)
     const coverImage = await CloudinaryFileUpload(coverImagePath)
 
-    const createdUser = await userModel
-
-
-    res.status(200).json({
-        message : "Data saved successfully"
+    const createdUser = await userModel.create({
+        userName : userName.toLowerCase().trim().replace(/\s+/g,""),
+        email : email,
+        fullName,
+        password,
+        avatar : avatar.url,
+        coverImage : coverImage.url || ""
     })
+
+    const user = userModel.findById(createdUser._id).select(
+        "-password -refreshToken"
+    )
+
+    if(!user) return res.status(500).json({error : "somthing went wrong when unploading on server"})
+
+    res.status(201).send(user)
+    
 })
 
 export {handleGetData,hadleUploadData}

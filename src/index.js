@@ -3,7 +3,7 @@ import connect from './db/index.js'
 import {app} from "./app.js";
 
 dotenv.config({
-    path : "./env"
+    path : "./.env"
 })
 connect().then(()=>{
     app.on("error",(error)=>{
