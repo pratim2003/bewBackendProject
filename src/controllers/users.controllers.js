@@ -6,9 +6,10 @@ const handleGetData = asyncHandler(async(req,res)=>{
 
     const body = req.body
 
+    const user = await userModel.find({})
 
     res.status(200).json({
-        mssg : "hello Pratim"
+        user : user
     })
 })
 
@@ -29,31 +30,41 @@ const hadleUploadData= asyncHandler(async(req,res)=>{
     })
 
     const avatarLocalPath = req.files?.avatar[0].path
-    const coverImagePath = req.files?.coverImage[0].path
+    // const coverImagePath = req.files?.coverImage[0]?.path
+
+    let coverImagePath;
+    let coverImage;
+
+    if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0){
+        coverImagePath = req.files.coverImage[0].path
+        coverImage = await CloudinaryFileUpload(coverImagePath)
+    }
 
     if(!avatarLocalPath) return res.status(400).json({
         error : "avatar image is required"
     })
 
     const avatar = await CloudinaryFileUpload(avatarLocalPath)
-    const coverImage = await CloudinaryFileUpload(coverImagePath)
-
+    
     const createdUser = await userModel.create({
         userName : userName.toLowerCase().trim().replace(/\s+/g,""),
         email : email,
         fullName,
         password,
         avatar : avatar.url,
-        coverImage : coverImage.url || ""
+        coverImage : coverImage? coverImage.url : ""
     })
 
-    const user = userModel.findById(createdUser._id).select(
+    const user = await userModel.findById(createdUser._id).select(
         "-password -refreshToken"
     )
 
     if(!user) return res.status(500).json({error : "somthing went wrong when unploading on server"})
 
-    res.status(201).send(user)
+    res.status(201).json({
+        message : "New User created",
+        user : user
+    })
     
 })
 
