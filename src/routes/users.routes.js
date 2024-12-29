@@ -1,11 +1,12 @@
 import { Router } from "express";
-import {handleGetData,hadleUploadData} from "../controllers/users.controllers.js"
+import {handleGetData,hadleUploadData,handleLogIn,handleLogOut,refreshAccessToken} from "../controllers/users.controllers.js"
 import {upload} from "../middlewares/multer.middleware.js"
+import {auth} from "../middlewares/auth.middleware.js"
 
 const router  = Router()
 
 router.get("/get",handleGetData)
-router.post("/post",upload.fields([
+router.post("/register",upload.fields([
     {
         name : "avatar",
         maxCount : 1
@@ -15,6 +16,7 @@ router.post("/post",upload.fields([
         maxCount : 1
     }
 ]),hadleUploadData)
-
-
+router.post("/login",handleLogIn)
+router.delete("/logout",auth,handleLogOut)
+router.post("/refreshAccessToken",refreshAccessToken)
 export default router
