@@ -51,7 +51,7 @@ const hadleUploadData= asyncHandler(async(req,res)=>{
     
     const createdUser = await userModel.create({
         userName : userName.toLowerCase().trim().replace(/\s+/g,""),
-        email : email,
+        email : email.toLowerCase(),
         fullName,
         password,
         avatar : avatar.url,
@@ -86,7 +86,11 @@ const handleLogIn = asyncHandler(async(req,res)=>{
     
     const isVerify = await existedUser.isVerified(password)
     if(!isVerify) return res.status(401).json({"message" : "Password incorrect"})
-
+    if(!existedUser.refreshToken=="") {
+        return res.status(409).json({
+            message : "already logged in"
+        })
+    }
     const accessToken = await existedUser.AccessToken()
     const refreshToken = await existedUser.RefreshToken()
 
@@ -155,4 +159,24 @@ const refreshAccessToken = asyncHandler(async(req,res)=>{
     }
 })
 
-export {handleGetData,hadleUploadData,handleLogIn,handleLogOut,refreshAccessToken}
+const changePassword = asyncHandler(async(req,res)=>{
+    const user = await userModel.findById(req.user._id)
+
+    const {oldPassword,newPassword,confPassword} = req.body
+    if(newPassword!=confPassword) return res.status(400).json({message : "newPassword and confirm password are not same"})
+        
+    const isPasswordCorrect = await user.isVerified(oldPassword)
+    if(!isPasswordCorrect) return res.status(400).json({message : "password incorrect"})
+    
+    user.password = confPassword
+
+    const User = await user.save({validateBeforeSave : false})
+    const newUser = await userModel.findById(User._id).select("-password -refreshToken")
+
+    res.status(200).json({
+        user : newUser,
+        message : "password changed successfully :)"
+    })
+})
+
+export {handleGetData,hadleUploadData,handleLogIn,handleLogOut,refreshAccessToken,changePassword}
