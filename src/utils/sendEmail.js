@@ -4,12 +4,12 @@ const OTP = Math.floor(Math.random()*10001)
 const SendEmail = async(options)=>{
     try {
         const auth = nodemailer.createTransport({
-            service : "gmail",
+            service : process.env.EMAIL_SERVICE,
             secure : false,
             port : 465,
             auth : {
-                user : "duttapratim003@gmail.com",
-                pass : "pvbi akwl uinj mbzm"
+                user : process.env.EMAIL,
+                pass : process.env.LESSPASS
             }
         })
         
@@ -20,16 +20,20 @@ const SendEmail = async(options)=>{
             text : `your otp is ${OTP}`
         }
     
-        await auth.sendMail(responce)
+        return await auth.sendMail(responce)
     } catch (error) {
         console.log("error sending message",error)
     }
 }
 
 const sendEmail = async(email)=>{
-    const res = await SendEmail(email)
-    if(res) return OTP
-    return null
+    try {
+        const res = SendEmail({email})
+        if(res) return OTP
+        return null
+    } catch (error) {
+        console.log(error)
+    }
 }
 
 export default sendEmail
