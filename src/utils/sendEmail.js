@@ -14,7 +14,7 @@ const SendEmail = async(options)=>{
         })
         
         const responce = {
-            from : "duttapratim003@gmail.com",
+            from : process.env.EMAIL,
             to : options.email,
             subject : "OTP for password",
             text : `your otp is ${OTP}`
