@@ -44,15 +44,31 @@ const userSchema = new mongoose.Schema({
             type : mongoose.Schema.Types.ObjectId,
             ref : "Video"
         }
-    ]
+    ],
+    otp : {
+        type : String
+    }
 },{timestamps : true})
 
 userSchema.pre("save",async function(next){
     if(!this.isModified("password")) return next()
 
     this.password = await bcrypt.hash(this.password,10)
+    
     next()
 })
+
+userSchema.pre("save",async function (next) {
+    if(!(this.isModified("otp"))) return next()
+    if(this.otp==undefined) return next()
+    this.otp = await bcrypt.hash(this.otp,10)
+
+    next()
+})
+
+userSchema.methods.verifyOtp = async function(otp){
+    return await bcrypt.compare(otp,this.otp)
+}
 
 userSchema.methods.isVerified = async function(password){
     return await bcrypt.compare(password,this.password)

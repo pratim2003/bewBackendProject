@@ -187,8 +187,51 @@ const forgetPassword = asyncHandler(async(req,res)=>{
 
     const otp = await sendEmail(email)
 
-    console.log(otp)
+    const user = req.user
+
+    const user2 = await userModel.findById(user._id)
+
+    user2.otp = otp
+
+    const newUser = await user2.save({validateBeforeSave : false})
+
+    if(!newUser) return res.status(500).json({message : "somwthing went wrong while sending otp"})
+    const option = {
+        httpOnly : true,
+        secure : true
+    }
+    return res.status(200).cookie("id",newUser._id,option).json({message : "otp send"})
 })
 
+const otpVerify = asyncHandler(async(req,res)=>{
+    const user = req.user
+    const {otp} = req.body
+    const newUSer = await userModel.findById(user._id)
+    const verifyOtp = await newUSer.verifyOtp(otp)
+    if(!verifyOtp) return res.status(400).json({message : "Wrong OTP"})
+    const option = {
+        httpOnly : true,
+        secure : true
+    }
+    
+    return res.status(200).cookie("id",newUSer._id,option).send({message : "enter your new password"})
+})
 
-export {handleGetData,hadleUploadData,handleLogIn,handleLogOut,refreshAccessToken,changePassword,forgetPassword}
+const passwordChange = asyncHandler(async(req,res)=>{
+    const {newPassword,confPassword} = req.body
+    if(!(newPassword || confPassword)) return res.status(400).json({message : "all the parametres are needed"})
+    if(newPassword != confPassword) return res.status(400).json({message : "newPassword and confirm password are not matched"})
+    const user = req.user
+    const newUser = await userModel.findById(user._id)
+    newUser.password = confPassword
+    newUser.otp = undefined
+    const user2 = await newUser.save({validateBeforeSave : false})
+    if(!user2) return res.status(500).json({message : "something went wrong while updating the password please try again"})
+    const option = {
+        httpOnly : true,
+        secure : true
+    }
+    return res.status(200).clearCookie("id",option).json({message : "password updated"})
+})
+
+export {handleGetData,hadleUploadData,handleLogIn,handleLogOut,refreshAccessToken,changePassword,forgetPassword,otpVerify,passwordChange}
