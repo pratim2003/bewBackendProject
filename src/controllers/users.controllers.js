@@ -234,4 +234,43 @@ const passwordChange = asyncHandler(async(req,res)=>{
     return res.status(200).clearCookie("id",option).json({message : "password updated"})
 })
 
-export {handleGetData,hadleUploadData,handleLogIn,handleLogOut,refreshAccessToken,changePassword,forgetPassword,otpVerify,passwordChange}
+const updateProfile = asyncHandler(async(req,res)=>{
+    const {userName,fullName,email} = req.body
+    const user = req.user
+    const user2 = await userModel.findById(user._id)
+    if(userName) await userModel.findByIdAndUpdate(user2._id,{userName : userName})
+    if(fullName) await userModel.findByIdAndUpdate(user2._id,{fullName : fullName})
+    if(email) await userModel.findByIdAndUpdate(user2._id,{email : email})
+    return res.status(200).json({message : "data updated"})
+})
+
+const updateAvatar = asyncHandler(async(req,res)=>{
+    const user = req.user
+    if(!req.file) return res.status(400).json({message : "Avatar image needed"})
+    const avatarLocalPath = req.file?.path
+
+    if(!avatarLocalPath) return res.status(500).json({message : "Something went wrong while Avatar image"})
+    const avatarImage = await CloudinaryFileUpload(avatarLocalPath)
+    if(!avatarImage) return res.status(500).json({message : "something went wrong while uploading on cloudinary"})
+
+    const newUser = await userModel.findByIdAndUpdate(user._id,{avatar : avatarImage?.url})
+    if(!newUser) return res.status(500).json({message : "something went wrong while updating tha data"})
+    return res.status(200).json({message : "Avatar Image file upload"})
+})
+
+const updateCoverImage = asyncHandler(async(req,res)=>{
+    const user =  req.user
+
+    if(!req.file) return res.status(400).json({message : "coverImage needed"})
+    
+    const coverImageLocalPath = req.file.path
+    if(!coverImageLocalPath) return res.status(500).json({message : "Something went wrong while Cover image"})
+    const coverImage = await CloudinaryFileUpload(coverImageLocalPath)
+    if(!coverImage) return res.status(500).json({message : "something went wrong while uploading on cloudinary"})
+
+    const newUser = await userModel.findByIdAndUpdate(user._id,{coverImage : coverImage?.url})
+    if(!newUser) return res.status(500).json({message : "something went wrong while updating tha data"})
+    return res.status(200).json({message : "Cover Image file upload"})
+})
+
+export {handleGetData,hadleUploadData,handleLogIn,handleLogOut,refreshAccessToken,changePassword,forgetPassword,otpVerify,passwordChange,updateProfile,updateAvatar,updateCoverImage}
