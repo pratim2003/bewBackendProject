@@ -1,8 +1,8 @@
 import { userModel } from "../models/user.model.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import CloudinaryFileUpload from "../utils/cloudinary.js"
-import jwt from "jsonwebtoken"
-
+import jwt from "jsonwebtoken";
+import sendEmail  from "../utils/sendEmail.js";
 
 
 const handleGetData = asyncHandler(async(req,res)=>{
@@ -163,6 +163,9 @@ const changePassword = asyncHandler(async(req,res)=>{
     const user = await userModel.findById(req.user._id)
 
     const {oldPassword,newPassword,confPassword} = req.body
+
+    if(!(oldPassword || newPassword || confPassword)) return 
+
     if(newPassword!=confPassword) return res.status(400).json({message : "newPassword and confirm password are not same"})
         
     const isPasswordCorrect = await user.isVerified(oldPassword)
@@ -179,4 +182,13 @@ const changePassword = asyncHandler(async(req,res)=>{
     })
 })
 
-export {handleGetData,hadleUploadData,handleLogIn,handleLogOut,refreshAccessToken,changePassword}
+const forgetPassword = asyncHandler(async(req,res)=>{
+    const {email} = req.body
+
+    const otp = await sendEmail(email)
+
+    console.log(otp)
+})
+
+
+export {handleGetData,hadleUploadData,handleLogIn,handleLogOut,refreshAccessToken,changePassword,forgetPassword}
