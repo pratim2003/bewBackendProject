@@ -25,7 +25,7 @@ const hadleUploadData= asyncHandler(async(req,res)=>{
 
     const existedUser = await userModel.findOne({
         $or : [
-            {userName : userName},{email : email}
+            {userName : userName.split(" ").join("").toLowerCase()},{email : email.toLowerCase()}
         ]
     })
     if(existedUser) return res.status(409).json({
@@ -273,4 +273,68 @@ const updateCoverImage = asyncHandler(async(req,res)=>{
     return res.status(200).json({message : "Cover Image file upload"})
 })
 
-export {handleGetData,hadleUploadData,handleLogIn,handleLogOut,refreshAccessToken,changePassword,forgetPassword,otpVerify,passwordChange,updateProfile,updateAvatar,updateCoverImage}
+const subcriptionHandler = asyncHandler(async(req,res)=>{
+    const {userName} = req.body
+    if(!userName) return res.status(200).json({message : "username is needed"})
+
+    const channel = await userModel.aggregate([
+        {
+            $match : {
+                userName : userName
+            }
+        },
+        {
+            $lookup : {
+                from : "subcriptions",
+                localField : "_id",
+                foreignField : "channel",
+                as : "subscriber"
+            }
+        },
+        {
+            $lookup : {
+                from : "subcriptions",
+                localField : "_id",
+                foreignField : "subscriber",
+                as : "subcribedTo"
+            }
+        },
+        {
+            $addFields : {
+                totalSubscriber : {
+                    $size : "$subscriber"
+                },
+                totalChannelSubscribedTo : {
+                    $size : "$subcribedTo"
+                },
+                isSubscribedTo : {
+                    $cond : {
+                        if : {
+                            $in : [req.user?._id,"$subscriber.Subscriber"]
+                        },
+                        then : true,
+                        else : false
+                    }
+                }
+            }
+        },
+        {
+            $project : {
+                userName : 1,
+                fullName : 1,
+                email : 1,
+                subscriber : 1,
+                subcribedTo : 1,
+                totalSubscriber : 1,
+                totalChannelSubscribedTo : 1,
+                isSubscribedTo : 1
+            }
+        }
+    ])
+
+    // console.log(channel)
+
+    return res.status(200).send(channel[0])
+})
+
+export {handleGetData,hadleUploadData,handleLogIn,handleLogOut,refreshAccessToken,changePassword,forgetPassword,otpVerify,passwordChange,updateProfile,updateAvatar,updateCoverImage,subcriptionHandler}
