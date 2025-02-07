@@ -3,13 +3,15 @@ import asyncHandler from "../utils/asyncHandler.js";
 import CloudinaryFileUpload from "../utils/cloudinary.js"
 import jwt from "jsonwebtoken";
 import sendEmail  from "../utils/sendEmail.js";
+import mongoose from "mongoose";
 
 
 const handleGetData = asyncHandler(async(req,res)=>{
 
-    const body = req.body
+    if(!req.user) return res.status(404).json({message : "No user found"})
+    const id = req.user?._id
 
-    const user = await userModel.find({})
+    const user = await userModel.findById(id).select("-password -refreshToken -otp")
 
     res.status(200).json({
         user : user
@@ -337,4 +339,53 @@ const subcriptionHandler = asyncHandler(async(req,res)=>{
     return res.status(200).send(channel[0])
 })
 
-export {handleGetData,hadleUploadData,handleLogIn,handleLogOut,refreshAccessToken,changePassword,forgetPassword,otpVerify,passwordChange,updateProfile,updateAvatar,updateCoverImage,subcriptionHandler}
+
+
+const watchHistory = asyncHandler(async(req,res)=>{
+    if(!req.user) return res.status(404).json({message : "user not found"})
+    const history = await userModel.aggregate([
+        {
+            $match : {
+                _id : new mongoose.Types.ObjectId(req.user?._id)
+            }
+        },
+        {
+            $lookup : {
+                from : "videos",
+                localField : "watchHistory",
+                foreignField : "_id",
+                as : "videos",
+                pipeline : [
+                    {
+                        $lookup : {
+                            from : "users",
+                            localField : "owner",
+                            foreignField : "_id",
+                            as : "owner"
+                        }
+                    }
+                ]
+            }
+        }
+    ])
+
+    if(!history) return res.status(500).json({message : "internal server error"})
+
+    return res.status(200).send(history[0])
+})
+
+export {handleGetData,
+    hadleUploadData,
+    handleLogIn,
+    handleLogOut,
+    refreshAccessToken,
+    changePassword,
+    forgetPassword,
+    otpVerify,
+    passwordChange,
+    updateProfile,
+    updateAvatar,
+    updateCoverImage,
+    subcriptionHandler,
+    watchHistory
+}

@@ -1,12 +1,12 @@
 import { Router } from "express";
-import {handleGetData,hadleUploadData,handleLogIn,handleLogOut,refreshAccessToken,changePassword, forgetPassword,otpVerify,passwordChange,updateProfile,updateAvatar,updateCoverImage,subcriptionHandler} from "../controllers/users.controllers.js"
+import {handleGetData,hadleUploadData,handleLogIn,handleLogOut,refreshAccessToken,changePassword, forgetPassword,otpVerify,passwordChange,updateProfile,updateAvatar,updateCoverImage,subcriptionHandler,watchHistory} from "../controllers/users.controllers.js"
 import {upload} from "../middlewares/multer.middleware.js"
 import {auth} from "../middlewares/auth.middleware.js"
 import verifyEmail,{veryfyOtp} from "../middlewares/verifyEmail.js";
 
 const router  = Router()
 
-router.get("/get",handleGetData)
+router.get("/get",auth,handleGetData)
 router.post("/register",upload.fields([
     {
         name : "avatar",
@@ -28,5 +28,6 @@ router.post("/forgetPassword",verifyEmail,forgetPassword)
 router.post("/otpVerify",veryfyOtp,otpVerify)
 router.post("/passwordCahngeWithoutAuth",veryfyOtp,passwordChange)
 router.post("/channel",auth,subcriptionHandler)
+router.post("/watchHisory",auth,watchHistory)
 
 export default router

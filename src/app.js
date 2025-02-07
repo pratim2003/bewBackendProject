@@ -26,7 +26,9 @@ app.use(cors(corsOption))
 
 //import routes
 import userRouter from "./routes/users.routes.js"
+import videoRouter from "./routes/videos.routes.js"
 
 app.use("/api/user",userRouter)
+app.use("/api/video",videoRouter)
 
 export {app}
