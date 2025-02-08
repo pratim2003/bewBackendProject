@@ -230,11 +230,12 @@ const passwordChange = asyncHandler(async(req,res)=>{
     newUser.otp = undefined
     const user2 = await newUser.save({validateBeforeSave : false})
     if(!user2) return res.status(500).json({message : "something went wrong while updating the password please try again"})
+    const updatedUser = await userModel.findById(user2._id).select("-password -refreshToken -otp")
     const option = {
         httpOnly : true,
         secure : true
     }
-    return res.status(200).clearCookie("id",option).json({message : "password updated"})
+    return res.status(200).clearCookie("id",option).json({message : "password updated",user : updatedUser})
 })
 
 const updateProfile = asyncHandler(async(req,res)=>{
@@ -244,7 +245,8 @@ const updateProfile = asyncHandler(async(req,res)=>{
     if(userName) await userModel.findByIdAndUpdate(user2._id,{userName : userName})
     if(fullName) await userModel.findByIdAndUpdate(user2._id,{fullName : fullName})
     if(email) await userModel.findByIdAndUpdate(user2._id,{email : email})
-    return res.status(200).json({message : "data updated"})
+    const updatedUser = await userModel.findById(req.user._id).select("-password -refreshToken -otp")
+    return res.status(200).json({message : "data updated",user : updatedUser})
 })
 
 const updateAvatar = asyncHandler(async(req,res)=>{

@@ -3,12 +3,14 @@ import cookieParser from "cookie-parser"
 import cors from "cors"
 
 const app = express()
-
+//app middlewares
 app.use(cookieParser())
 app.use(express.json())
 app.use(express.urlencoded({extended : true}))
 app.use(express.static("src/uploads"))
 
+
+//cors
 const whiteList = []
 
 const corsOption = {
@@ -27,8 +29,10 @@ app.use(cors(corsOption))
 //import routes
 import userRouter from "./routes/users.routes.js"
 import videoRouter from "./routes/videos.routes.js"
+import subscriptionRouter from "./routes/subscription.routes.js"
 
 app.use("/api/user",userRouter)
 app.use("/api/video",videoRouter)
+app.use("/api/subcription",subscriptionRouter)
 
 export {app}

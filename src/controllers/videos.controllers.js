@@ -56,6 +56,8 @@ const uploadVideo = asyncHandler(async(req,res)=>{
     return res.status(200).json({message : "file upload success",video})
 })
 
+
+
 export {
     getVideos,
     uploadVideo
