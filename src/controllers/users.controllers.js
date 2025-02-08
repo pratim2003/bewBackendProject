@@ -346,6 +346,8 @@ const updateWatchHistory = asyncHandler(async(req,res)=>{
     if(!id) return res.status(400).json({message : "id is missing"})
     const video = await videoModel.findById(id)
     if(!video) return res.status(500).json({message : "video deleted or not found"})
+    const userData = await userModel.findById(userId)
+    if(!userData.watchHistory.includes(video._id)){
     const data = await userModel.findByIdAndUpdate(userId,{
         $push : {
             watchHistory : video._id
@@ -365,6 +367,7 @@ const updateWatchHistory = asyncHandler(async(req,res)=>{
     })
 
     if(!updatedVideo) return res.status(500).json({message : "something went wrong while updating the views"})
+    }
 
     return res.status(200).json({message : "data updated"})
 })
