@@ -56,9 +56,26 @@ const uploadVideo = asyncHandler(async(req,res)=>{
     return res.status(200).json({message : "file upload success",video})
 })
 
-
+const updateDetails = asyncHandler(async(req,res)=>{
+    const id = req.params.id
+    const video = await videoModel.findById(id)
+    if(req.user._id!=video.owner) return res.status(404).json({message : "video is not autherized"})
+    const {title,description,isPublished} = req.body
+    if(!(title || description || isPublished)) return res.status(400).send({message : "every field is required"})
+    const updatedVideo = await videoModel.updateOne({_id : video._id},{
+        $set : {
+            title : title,
+            description : description,
+            isPublished : isPublished
+        }
+    })
+    if(!updatedVideo) return res.status(500).json({message : "something went wrong while upfating"})
+    const realVideo = await videoModel.findById(updatedVideo._id).select("-owner -duration")
+    return res.status(200).json({message : "data updated", video : realVideo})
+})
 
 export {
     getVideos,
-    uploadVideo
+    uploadVideo,
+    updateDetails
 }
