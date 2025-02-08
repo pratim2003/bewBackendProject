@@ -1,4 +1,5 @@
 import { userModel } from "../models/user.model.js";
+import {videoModel} from "../models/video.model.js"
 import asyncHandler from "../utils/asyncHandler.js";
 import CloudinaryFileUpload from "../utils/cloudinary.js"
 import jwt from "jsonwebtoken";
@@ -339,6 +340,35 @@ const subcriptionHandler = asyncHandler(async(req,res)=>{
     return res.status(200).send(channel[0])
 })
 
+const updateWatchHistory = asyncHandler(async(req,res)=>{
+    const id  = req.params.id
+    const userId  = req.user._id
+    if(!id) return res.status(400).json({message : "id is missing"})
+    const video = await videoModel.findById(id)
+    if(!video) return res.status(500).json({message : "video deleted or not found"})
+    const data = await userModel.findByIdAndUpdate(userId,{
+        $push : {
+            watchHistory : video._id
+        },
+    },{
+        new : true
+    })
+
+    if(!data) return res.status(500).json({message : "something went wrong while updating the watchHistory"})
+
+    const updatedVideo = await videoModel.findByIdAndUpdate(video._id,{
+        $inc : {
+            views : 1
+        }
+    },{
+        new : true
+    })
+
+    if(!updatedVideo) return res.status(500).json({message : "something went wrong while updating the views"})
+
+    return res.status(200).json({message : "data updated"})
+})
+
 
 
 const watchHistory = asyncHandler(async(req,res)=>{
@@ -374,7 +404,8 @@ const watchHistory = asyncHandler(async(req,res)=>{
     return res.status(200).send(history[0])
 })
 
-export {handleGetData,
+export {
+    handleGetData,
     hadleUploadData,
     handleLogIn,
     handleLogOut,
@@ -387,5 +418,6 @@ export {handleGetData,
     updateAvatar,
     updateCoverImage,
     subcriptionHandler,
-    watchHistory
+    watchHistory,
+    updateWatchHistory
 }

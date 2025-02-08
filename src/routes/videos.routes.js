@@ -10,6 +10,10 @@ router.post("/upload",auth,upload.fields([
     {
         name : "video",
         maxCount : 1
+    },
+    {
+        name : "thumbnail",
+        maxCount : 1
     }
 ]),uploadVideo)
 
