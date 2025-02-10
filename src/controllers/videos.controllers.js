@@ -26,7 +26,7 @@ const getVideos = asyncHandler(async(req,res)=>{
         }
     ])
     if((!video) || (video.length==0)) return res.status(500).json({message : "no video found"})
-    return res.status(200).send(video[0])
+    return res.status(200).send(video)
 })
 
 const uploadVideo = asyncHandler(async(req,res)=>{
@@ -59,9 +59,9 @@ const uploadVideo = asyncHandler(async(req,res)=>{
 const updateDetails = asyncHandler(async(req,res)=>{
     const id = req.params.id
     const video = await videoModel.findById(id)
-    if(req.user._id!=video.owner) return res.status(404).json({message : "video is not autherized"})
+    if(String(req.user._id)!=String(video.owner)) return res.status(404).json({message : "video is not autherized"})
     const {title,description,isPublished} = req.body
-    if(!(title || description || isPublished)) return res.status(400).send({message : "every field is required"})
+    if(!(title && description && isPublished)) return res.status(400).send({message : "every field is required"})
     const updatedVideo = await videoModel.updateOne({_id : video._id},{
         $set : {
             title : title,
@@ -70,12 +70,55 @@ const updateDetails = asyncHandler(async(req,res)=>{
         }
     })
     if(!updatedVideo) return res.status(500).json({message : "something went wrong while upfating"})
-    const realVideo = await videoModel.findById(updatedVideo._id).select("-owner -duration")
-    return res.status(200).json({message : "data updated", video : realVideo})
+    const realVideo = await videoModel.findById(video._id).select("-owner -duration")
+    return res.status(200).json({
+        message : "data updated", 
+        video : realVideo
+    })
+})
+
+const upadteVideodetails = asyncHandler(async(req,res)=>{
+    if(!req.files) return res.status(400).json({message : "video or thumbnail files is required"})
+    const id = req.params.id
+    if(!id) return res.status(400).json({message : "id not found"})
+    const video = await videoModel.findById(id)
+    if(req.user.id!=video.owner) return res.status(404).json({message : "not authorized"})
+    let videoFilePath;
+    let thumbnailPath;
+    if(req.files.video){videoFilePath = req.files.video[0].path}
+    if(req.files.thumbnail){thumbnailPath = req.files.thumbnail[0].path}
+    let videoUrl;
+    let thumbnailUrl;
+    if(videoFilePath){videoUrl = await cloudinary(videoFilePath)}
+    if(thumbnailPath){thumbnailUrl = await cloudinary(thumbnailPath)}
+    if(videoUrl){await videoModel.findByIdAndUpdate(video._id,{videofile : videoUrl.url})}
+    if(thumbnailUrl){await videoModel.findByIdAndUpdate(video._id,{thumbnail : thumbnailUrl.url})}
+    const updatedVideo = await videoModel.findById(video._id)
+    return res.status(200).json({message : "updated",video : updatedVideo})
+})
+
+const deleteVideo = asyncHandler(async(req,res)=>{
+    const id = req.params.id
+    if(!id) return res.status(400).json({message : "id not found"})
+    const video = await videoModel.findById(id)
+    if(req.user.id!=video.owner) return res.status(404).json({message : "not authorized"})
+    await videoModel.findByIdAndDelete(video._id)
+    return res.status(200).json({message : "video deleted"})
+})
+
+const getAnyVideo = asyncHandler(async(req,res)=>{
+    const id = req.params.id
+    if(!id) return res.status(400).json({message : "id not found"})
+    const video = await videoModel.findById(id)
+    if(!video) return res.status(400).json({message : "no video found"})
+    return res.status(200).json({video})
 })
 
 export {
     getVideos,
     uploadVideo,
-    updateDetails
+    updateDetails,
+    deleteVideo,
+    upadteVideodetails,
+    getAnyVideo
 }
