@@ -279,13 +279,14 @@ const updateCoverImage = asyncHandler(async(req,res)=>{
 })
 
 const subcriptionHandler = asyncHandler(async(req,res)=>{
-    const {userName} = req.body
-    if(!userName) return res.status(200).json({message : "username is needed"})
+    const id = req.user._id
+    // if(!userName) return res.status(200).json({message : "username is needed"})
+    if(!id) return res.status(404).json({message : "not authorized"})
 
     const channel = await userModel.aggregate([
         {
             $match : {
-                userName : userName
+                _id : id
             }
         },
         {
@@ -300,7 +301,7 @@ const subcriptionHandler = asyncHandler(async(req,res)=>{
             $lookup : {
                 from : "subcriptions",
                 localField : "_id",
-                foreignField : "subscriber",
+                foreignField : "Subscriber",
                 as : "subcribedTo"
             }
         },
