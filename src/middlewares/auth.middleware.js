@@ -17,6 +17,6 @@ export const auth =asyncHandler(async(req,res,next)=>{
     
         next()
     } catch (error) {
-        res.status(500).json({"message" : "something went wrong in server"})
+        res.status(500).json({"message" : "something went wrong in server",err:error.message})
     }
 })

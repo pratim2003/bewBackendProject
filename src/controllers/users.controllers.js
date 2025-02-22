@@ -5,6 +5,8 @@ import CloudinaryFileUpload from "../utils/cloudinary.js"
 import jwt from "jsonwebtoken";
 import sendEmail  from "../utils/sendEmail.js";
 import mongoose from "mongoose";
+import deleteRefreshTokenc from "../utils/cronServer.js";
+
 
 
 const handleGetData = asyncHandler(async(req,res)=>{
@@ -98,6 +100,7 @@ const handleLogIn = asyncHandler(async(req,res)=>{
     const refreshToken = await existedUser.RefreshToken()
 
     existedUser.refreshToken = refreshToken
+    // existedUser.refreshTokenExpireAt = new Date(Date.now()+parseInt(process.env.REFRESH_TOKEN_EXPIRES_IN)*60*1000)
 
     const user = await existedUser.save({validateBeforeSave : false})
 
@@ -105,7 +108,7 @@ const handleLogIn = asyncHandler(async(req,res)=>{
 
     const user2 = await userModel.findById(user._id).select("-password -refreshToken")
     if(!user2) return res.status(500).json({"message" : "something went wrong while saving"})
-    
+    deleteRefreshTokenc(user2._id)
     const option = {
         httpOnly : true,
         secure : true
@@ -128,6 +131,7 @@ const handleLogOut = asyncHandler(async(req,res)=>{
     //     }
     // },{new : true})
     logedUser.refreshToken = undefined
+    logedUser.refreshTokenExpireAt = undefined
     const updatedUser = await logedUser.save({validateBeforeSave : false})
     if(!updatedUser) return res.status(500).json({"message" : "something went wrong while updating the data"})
 
